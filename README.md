@@ -1,6 +1,10 @@
 # TSFM Energy Benchmark
 
-Compare forecasting accuracy, runtime and GPU energy on [BDG2](https://github.com/buds-lab/building-data-genome-project-2).
+Evaluate forecasting accuracy, runtime and GPU energy on [BDG2](https://github.com/buds-lab/building-data-genome-project-2).
+
+We use the hourly data of electricity meters at the Fox site from the [Building Data Genome Project 2 (BDG2) dataset](https://github.com/buds-lab/building-data-genome-project-2). We remove meters with more than 5% missing observations. This yields 128 electricity meters for evaluation. The meter data cover two years, from January 2016 to December 2017.
+
+The evaluation performs a 24-hour prediction every day in 2017 using the data before the forecast day. Five input history lengths are used: 720, 2160, 4320, 6480, and 8640 hours, increasing in fixed 30 days. All configurations were evaluated on an NVIDIA RTX PRO 6000 Blackwell GPU.
 
 ## Structure
 
@@ -96,6 +100,8 @@ python scripts/analysis/plot_release_rmse.py --summary results/summary_by_effect
 
 ## Acknowledgments and license
 
-The data protocol follows the BuildSys Chronos-2 reference experiments; energy measurement follows the benchmark design shared by Aymeric Trigaux.
+The data protocol follows the BuildSys Chronos-2 reference experiments and energy measurement follows the benchmark design shared by Aymeric Trigaux.
 
-Code is MIT-licensed. BDG2 and model weights retain their own licenses; see the official [Chronos](https://github.com/amazon-science/chronos-forecasting) and [TimesFM](https://github.com/google-research/timesfm) repositories. [TimesFM 3.0 weights](https://huggingface.co/google/timesfm-3.0-pytorch) have a separate non-commercial, non-production license.
+The code is released under the [MIT License](LICENSE). The dataset and pretrained models are subject to their respective licenses; see [BDG2](https://github.com/buds-lab/building-data-genome-project-2), [Chronos](https://github.com/amazon-science/chronos-forecasting), and [TimesFM](https://github.com/google-research/timesfm). The license for the TimesFM 3.0 weights is provided on the [model page](https://huggingface.co/google/timesfm-3.0-pytorch).
+
+Presented at the GREEN-AI Workshop, co-located with CIKM 2026.
