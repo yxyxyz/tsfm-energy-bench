@@ -150,7 +150,7 @@ class SupervisedForecaster:
 
 
 class _MLP:
-    """Small tabular network: standardized features + one-hot meter, 64/32 ReLU."""
+    """Small tabular network: standardized features + one-hot meter, 64/64 ReLU."""
     max_epochs = 100
     patience = 10
     batch_size = 1024
@@ -179,7 +179,7 @@ class _MLP:
         yv = torch.as_tensor((valid_y - self.y_mean) / self.y_scale, dtype=torch.float32, device=self.device)
         self.network = nn.Sequential(
             nn.Linear(xt.shape[1], 64), nn.ReLU(),
-            nn.Linear(64, 32), nn.ReLU(), nn.Linear(32, 1),
+            nn.Linear(64, 64), nn.ReLU(), nn.Linear(32, 1),
         ).to(self.device)
         optimizer = torch.optim.Adam(self.network.parameters(), lr=1e-3)
         best_loss, stale = float("inf"), 0
