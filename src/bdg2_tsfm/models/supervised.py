@@ -38,7 +38,7 @@ class SupervisedForecaster:
             ]
         if name == "mlp":
             self.forecast_options.update({
-                "hidden_layers": [64, 32], "activation": "relu",
+                "hidden_layers": [64, 64], "activation": "relu",
                 "optimizer": "Adam", "learning_rate": 0.001,
                 "max_epochs": _MLP.max_epochs, "early_stopping_patience": _MLP.patience,
                 "training_batch_size": _MLP.batch_size,
