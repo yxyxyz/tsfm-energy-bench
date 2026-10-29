@@ -1,0 +1,4 @@
+-e .[energy]
+chronos-forecasting==2.2.0
+timesfm[torch,xreg]==2.0.2
+torch>=2.7,<3

@@ -1,0 +1,4 @@
+-e .[energy]
+lightgbm>=4.6,<5
+scikit-learn>=1.5,<2
+torch>=2.7,<3

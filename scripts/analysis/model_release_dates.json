@@ -1,0 +1,17 @@
+{
+  "amazon/chronos-t5-tiny": "2024-03-13",
+  "amazon/chronos-t5-mini": "2024-03-13",
+  "amazon/chronos-t5-small": "2024-03-13",
+  "amazon/chronos-t5-base": "2024-03-13",
+  "amazon/chronos-t5-large": "2024-03-13",
+  "google/timesfm-1.0-200m-pytorch": "2024-05-08",
+  "amazon/chronos-bolt-tiny": "2024-12-05",
+  "amazon/chronos-bolt-mini": "2024-12-05",
+  "amazon/chronos-bolt-small": "2024-12-05",
+  "amazon/chronos-bolt-base": "2024-12-05",
+  "google/timesfm-2.5-200m-pytorch": "2025-09-15",
+  "amazon/chronos-2": "2025-10-20",
+  "autogluon/chronos-2-small": "2025-12-03",
+  "autogluon/chronos-2-synth": "2025-12-03",
+  "google/timesfm-3.0-pytorch": "2026-08-01"
+}

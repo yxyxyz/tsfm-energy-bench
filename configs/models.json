@@ -1,0 +1,19 @@
+[
+  {"family": "chronos", "checkpoint": "amazon/chronos-t5-base", "parameters_m": 200, "input_modes": ["ar"], "default_input_mode": "ar", "max_context_points": 512, "grids": ["base", "full"]},
+  {"family": "chronos-bolt", "checkpoint": "amazon/chronos-bolt-base", "parameters_m": 205, "input_modes": ["ar"], "default_input_mode": "ar", "max_context_points": 2048, "grids": ["base", "full"]},
+  {"family": "chronos2", "checkpoint": "amazon/chronos-2", "parameters_m": 120, "input_modes": ["ar", "arx"], "default_input_mode": "arx", "max_context_points": 8192, "grids": ["base", "full"]},
+  {"family": "timesfm25", "checkpoint": "google/timesfm-2.5-200m-pytorch", "parameters_m": 200, "input_modes": ["ar", "arx"], "default_input_mode": "arx", "arx_backend": "xreg + timesfm", "grids": ["base", "full"]},
+  {"family": "timesfm30", "checkpoint": "google/timesfm-3.0-pytorch", "parameters_m": 330, "input_modes": ["ar", "arx"], "default_input_mode": "arx", "arx_backend": "past + future covariates", "max_context_points": 15360, "grids": ["base", "full"]},
+  {"family": "timesfm10", "checkpoint": "google/timesfm-1.0-200m-pytorch", "parameters_m": 200, "input_modes": ["ar", "arx"], "default_input_mode": "arx", "arx_backend": "xreg + timesfm", "max_context_points": 512, "grids": ["base", "full"]},
+  {"family": "chronos", "checkpoint": "amazon/chronos-t5-tiny", "parameters_m": 8, "input_modes": ["ar"], "default_input_mode": "ar", "max_context_points": 512, "grids": ["full"]},
+  {"family": "chronos", "checkpoint": "amazon/chronos-t5-mini", "parameters_m": 20, "input_modes": ["ar"], "default_input_mode": "ar", "max_context_points": 512, "grids": ["full"]},
+  {"family": "chronos", "checkpoint": "amazon/chronos-t5-small", "parameters_m": 46, "input_modes": ["ar"], "default_input_mode": "ar", "max_context_points": 512, "grids": ["full"]},
+  {"family": "chronos", "checkpoint": "amazon/chronos-t5-large", "parameters_m": 710, "input_modes": ["ar"], "default_input_mode": "ar", "max_context_points": 512, "grids": ["full"]},
+  {"family": "chronos-bolt", "checkpoint": "amazon/chronos-bolt-tiny", "parameters_m": 9, "input_modes": ["ar"], "default_input_mode": "ar", "max_context_points": 2048, "grids": ["full"]},
+  {"family": "chronos-bolt", "checkpoint": "amazon/chronos-bolt-mini", "parameters_m": 21, "input_modes": ["ar"], "default_input_mode": "ar", "max_context_points": 2048, "grids": ["full"]},
+  {"family": "chronos-bolt", "checkpoint": "amazon/chronos-bolt-small", "parameters_m": 48, "input_modes": ["ar"], "default_input_mode": "ar", "max_context_points": 2048, "grids": ["full"]},
+  {"family": "chronos2", "checkpoint": "autogluon/chronos-2-small", "parameters_m": 28, "input_modes": ["ar", "arx"], "default_input_mode": "arx", "scope_review": true, "max_context_points": 8192, "grids": ["full"]},
+  {"family": "chronos2", "checkpoint": "autogluon/chronos-2-synth", "parameters_m": 120, "input_modes": ["ar", "arx"], "default_input_mode": "arx", "scope_review": true, "max_context_points": 8192, "grids": ["full"]},
+  {"family": "lightgbm", "checkpoint": "lightgbm", "input_modes": ["ar", "arx"], "default_input_mode": "arx", "device": "cpu", "energy_tool": "none", "grids": ["baselines"]},
+  {"family": "mlp", "checkpoint": "mlp", "input_modes": ["ar", "arx"], "default_input_mode": "arx", "grids": ["baselines"]}
+]

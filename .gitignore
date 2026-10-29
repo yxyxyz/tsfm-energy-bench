@@ -1,0 +1,21 @@
+# Datasets and model caches are downloaded, never committed
+/data/
+/dataset/
+/models/
+/.cache/
+
+# Experiment outputs
+/results/
+/figures/
+/tmp/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# macOS
+.DS_Store
