@@ -137,6 +137,8 @@ def main(argv: list[str] | None = None) -> None:
         raise SystemExit("LightGBM energy is not measured; use --energy-tool none")
     if args.model in {"lightgbm", "mlp"} and args.horizon > 168:
         raise SystemExit("BuildSys weekly-lag baselines require --horizon <= 168")
+    if args.model == "mlp" and (args.horizon < 24 or args.horizon % 24):
+        raise SystemExit("MLP requires --horizon 24, 48, ..., 168 (complete days)")
     if args.model == "mlp" and args.energy_tool == "all" and not args.device.startswith("cuda"):
         raise SystemExit("MLP GPU energy measurement requires --device cuda")
     if len(args.history_months) != 1:

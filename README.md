@@ -87,6 +87,11 @@ Each run writes:
 
 GPU energy is recorded in kWh. For MLP, training time is recorded separately; measured evaluation energy excludes training.
 
+MLP predicts 24 hours jointly with a 64–64–24 network, MAE loss, up to 1000 epochs
+and early-stopping patience 20. Training batches contain 128 meter-day samples;
+the final seven days of each history form the validation set. Use a fresh results
+directory for this version; earlier hourly-output MLP runs are not interchangeable.
+
 Combine results and plot:
 
 ```bash

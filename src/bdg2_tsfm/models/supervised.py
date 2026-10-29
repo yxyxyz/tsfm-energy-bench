@@ -1,7 +1,9 @@
-"""Rolling supervised baselines using the BuildSys tabular features.
+"""Rolling supervised baselines using the BuildSys features.
 
 One fresh model per meter type and forecast origin. The target is log1p(load),
 while the weekly load lag remains in original units, as in the reference code.
+MLP groups these features into daily samples and predicts 24 hours jointly,
+following EPFtoolbox's multi-output design (not its full feature/search protocol).
 """
 from __future__ import annotations
 
@@ -42,6 +44,9 @@ class SupervisedForecaster:
                 "optimizer": "Adam", "learning_rate": 0.001,
                 "max_epochs": _MLP.max_epochs, "early_stopping_patience": _MLP.patience,
                 "training_batch_size": _MLP.batch_size,
+                "output_hours": 24, "sample_unit": "meter_day",
+                "training_loss": "mae", "validation_metric": "mae",
+                "loss_space": "standardized_log1p",
                 "numeric_scaling": "training_rows_only",
                 "meter_encoding": "one_hot",
             })
@@ -70,6 +75,18 @@ class SupervisedForecaster:
             parts.append(part[self.forecast_options["features"]])
         return pd.concat(parts)
 
+    @staticmethod
+    def _daily_features(hourly):
+        """One meter-day per row, preserving meter-major and hourly order."""
+        columns = hourly.columns.drop("meter_id")
+        daily = pd.DataFrame(
+            hourly[columns].to_numpy().reshape(-1, 24 * len(columns)),
+            index=hourly.index[::24],
+            columns=[f"{column}_h{h:02d}" for h in range(24) for column in columns],
+        )
+        daily.insert(0, "meter_id", hourly.meter_id.to_numpy()[::24])
+        return daily
+
     def fit_window(self, values, covariates, meter_types, train_start):
         self.meter_codes = {key: i for i, key in enumerate(values.columns)}
         self.meter_types = meter_types
@@ -84,6 +101,10 @@ class SupervisedForecaster:
             ids = meter_types.index[meter_types == meter_type].tolist()
             x = self._features(values[ids], covariates, index)
             y = np.log1p(values.loc[index, ids].to_numpy().T.reshape(-1))
+            if self.name == "mlp":
+                x = self._daily_features(x)
+                y = y.reshape(-1, 24)
+                valid_start = index.max() + pd.Timedelta(hours=1) - pd.Timedelta(days=7)
             usable = x.notna().all(axis=1).to_numpy()
             x, y = x.loc[usable], y[usable]
             train = x.index < valid_start
@@ -120,6 +141,12 @@ class SupervisedForecaster:
                 "validation_last_timestamp": x.index[~train].max().isoformat(),
                 "best_iteration_or_epoch": iterations,
             })
+            if self.name == "mlp":
+                self.fit_details[-1].update({
+                    "training_last_timestamp": (x.index[train].max() + pd.Timedelta(hours=23)).isoformat(),
+                    "validation_last_timestamp": (x.index[~train].max() + pd.Timedelta(hours=23)).isoformat(),
+                    "epochs_completed": model.epochs_completed,
+                })
 
     def _synchronize(self):
         if self.device.startswith("cuda"):
@@ -129,6 +156,8 @@ class SupervisedForecaster:
     def forecast(self, contexts, horizon, **metadata):
         if horizon > self.lag_hours:
             raise ValueError("Weekly-lag baselines support horizon <= 168 h")
+        if self.name == "mlp" and (horizon < 24 or horizon % 24):
+            raise ValueError("MLP predicts complete 24-hour blocks; use horizon 24, 48, ..., 168")
         ids = metadata["series_ids"]
         values = pd.DataFrame(dict(zip(ids, contexts)), index=metadata["context_index"])
         covariates = None
@@ -144,16 +173,18 @@ class SupervisedForecaster:
                 continue
             group_ids = [ids[i] for i in positions]
             x = self._features(values[group_ids], covariates, index)
+            if self.name == "mlp":
+                x = self._daily_features(x)
             point = np.maximum(np.expm1(model.predict(x)), 0)
             prediction[positions] = point.reshape(len(group_ids), horizon)
         return prediction
 
 
 class _MLP:
-    """Small tabular network: standardized features + one-hot meter, 64/64 ReLU."""
-    max_epochs = 100
-    patience = 10
-    batch_size = 1024
+    """Daily multi-output network: standardized features + meter, 64/64/24."""
+    max_epochs = 1000
+    patience = 20
+    batch_size = 128
 
     def __init__(self, *, seed, device, meter_count):
         self.seed, self.device, self.meter_count = seed, device, meter_count
@@ -179,7 +210,7 @@ class _MLP:
         yv = torch.as_tensor((valid_y - self.y_mean) / self.y_scale, dtype=torch.float32, device=self.device)
         self.network = nn.Sequential(
             nn.Linear(xt.shape[1], 64), nn.ReLU(),
-            nn.Linear(64, 64), nn.ReLU(), nn.Linear(64, 1),
+            nn.Linear(64, 64), nn.ReLU(), nn.Linear(64, 24),
         ).to(self.device)
         optimizer = torch.optim.Adam(self.network.parameters(), lr=1e-3)
         best_loss, stale = float("inf"), 0
@@ -188,12 +219,12 @@ class _MLP:
             order = torch.randperm(len(xt), device=self.device)
             for batch in order.split(self.batch_size):
                 optimizer.zero_grad()
-                loss = nn.functional.mse_loss(self.network(xt[batch]).flatten(), yt[batch])
+                loss = nn.functional.l1_loss(self.network(xt[batch]), yt[batch])
                 loss.backward()
                 optimizer.step()
             self.network.eval()
             with torch.no_grad():
-                validation_loss = (self.network(xv).flatten() - yv).abs().mean().item()
+                validation_loss = (self.network(xv) - yv).abs().mean().item()
             if validation_loss < best_loss:
                 best_loss, stale, self.best_epoch = validation_loss, 0, epoch
                 best_weights = {k: v.detach().clone() for k, v in self.network.state_dict().items()}
@@ -201,6 +232,7 @@ class _MLP:
                 stale += 1
             if stale >= self.patience:
                 break
+        self.epochs_completed = epoch
         self.network.load_state_dict(best_weights)
 
     def predict(self, x):
@@ -208,4 +240,4 @@ class _MLP:
 
         with torch.no_grad():
             xt = torch.as_tensor(self._encode(x), device=self.device)
-            return self.network(xt).flatten().cpu().numpy() * self.y_scale + self.y_mean
+            return self.network(xt).cpu().numpy() * self.y_scale + self.y_mean
