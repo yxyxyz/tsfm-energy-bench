@@ -52,6 +52,11 @@ class TimesFM10Forecaster:
         self.internal_batch_size = batch_size
         self.decoding_horizon = horizon
         backend = "gpu" if device.startswith("cuda") else "cpu"
+        # Paper Table 2 uses per_core_batch_size=4 and horizon_len=256,
+        # as preserved in public repo tsfm-energy-bench at commit d412801.
+        # The library splits each 32-meter call into groups of four;
+        # only the first 24 forecast steps are evaluated.
+        # Current code instead follows --batch-size and --horizon.
         self.model = timesfm.TimesFm(
             hparams=timesfm.TimesFmHparams(
                 backend=backend,
