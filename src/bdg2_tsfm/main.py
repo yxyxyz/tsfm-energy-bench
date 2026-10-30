@@ -232,6 +232,7 @@ def main(argv: list[str] | None = None) -> None:
         input_mode=config.input_mode,
         batch_size=config.batch_size,
         max_context=24 * 30 * max(config.history_months),
+        horizon=config.horizon,
     )
     model_load_seconds = time.perf_counter() - load_started
     results = evaluate(

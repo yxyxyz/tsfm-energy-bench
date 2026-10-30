@@ -307,6 +307,11 @@ def main() -> None:
                     "max_meters": args.max_meters,
                     "site_id": args.site,
                 }
+                if str(entry["family"]) == "timesfm10":
+                    expected_config.update(
+                        model_internal_batch_size=args.batch_size,
+                        model_decoding_horizon=args.horizon,
+                    )
                 if str(entry["family"]) in {"timesfm25", "timesfm30"}:
                     requested_context = 24 * 30 * max(history_months)
                     model_context = math.ceil(requested_context / 32) * 32

@@ -49,6 +49,7 @@ def create_forecaster(
     input_mode: str,
     batch_size: int,
     max_context: int,
+    horizon: int = 168,
 ) -> Forecaster:
     if name not in MODEL_SPECS:
         raise ValueError(f"Unknown model {name!r}; choose from {sorted(MODEL_SPECS)}")
@@ -76,7 +77,8 @@ def create_forecaster(
         from .timesfm import TimesFM10Forecaster
 
         return TimesFM10Forecaster(
-            checkpoint=checkpoint, device=device, input_mode=input_mode
+            checkpoint=checkpoint, device=device, input_mode=input_mode,
+            batch_size=batch_size, horizon=horizon,
         )
     if spec.package == "persistence":
         from .persistence import SeasonalPersistenceForecaster

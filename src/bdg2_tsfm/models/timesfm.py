@@ -40,19 +40,24 @@ class TimesFM10Forecaster:
 
     name = "timesfm10"
     max_context = 512
-    internal_batch_size = 4
 
-    def __init__(self, *, checkpoint: str, device: str, input_mode: str) -> None:
+    def __init__(
+        self, *, checkpoint: str, device: str, input_mode: str,
+        batch_size: int, horizon: int,
+    ) -> None:
         import timesfm
 
         self.checkpoint = checkpoint
         self.input_mode = input_mode
+        self.internal_batch_size = batch_size
+        self.decoding_horizon = horizon
         backend = "gpu" if device.startswith("cuda") else "cpu"
         self.model = timesfm.TimesFm(
             hparams=timesfm.TimesFmHparams(
                 backend=backend,
-                per_core_batch_size=4,
-                horizon_len=256,
+                per_core_batch_size=batch_size,
+                # Requested forecast length; the pretrained output patch stays 128.
+                horizon_len=horizon,
                 context_len=self.max_context,
                 num_layers=20,
             ),

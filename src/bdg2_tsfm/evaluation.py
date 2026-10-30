@@ -14,7 +14,7 @@ import pandas as pd
 
 from .config import ExperimentConfig
 from .data import BDG2Data
-from .energy import EnergyMeasurement, gpu_index_from_device
+from .energy import EnergyMeasurement, NvidiaSmiPowerSampler, gpu_index_from_device
 from .models.base import Forecaster
 
 
@@ -487,6 +487,8 @@ def evaluate(
         "model_forecast_options": getattr(forecaster, "forecast_options", {}),
         **_runtime_metadata(config.device),
     }
+    if config.model == "timesfm10":
+        run_manifest["model_decoding_horizon"] = forecaster.decoding_horizon
     manifest_path = config.output_dir / "run_manifest.json"
     manifest_path.write_text(
         json.dumps(run_manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
@@ -495,6 +497,13 @@ def evaluate(
     training_rows = []
     prepared_models = []
     if supervised and config.energy_tool == "all":
+        # Fail before fitting a year's models if GPU power cannot be read.
+        # prepare() checks again after training; neither check starts monitoring.
+        NvidiaSmiPowerSampler(
+            config.output_dir / "energy" / "nvidia_smi_power.csv",
+            interval_ms=config.nvsmi_interval_ms,
+            gpu_index=gpu_index_from_device(config.device),
+        ).validate()
         # MLPs are small enough to hold every origin's independently trained
         # network in memory. Only inference is inside the measurement below.
         for window, cutoff in enumerate(cutoffs):
